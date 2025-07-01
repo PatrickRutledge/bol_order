@@ -1,0 +1,180 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "description": "A RoundRobin team with AssistantAgent, Bolbot, and SupervisorAgent.",
+  "label": "freight_orchestra_team",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 1,
+        "description": "An agent that provides assistance with tool use.",
+        "label": "AssistantAgent",
+        "config": {
+          "name": "assistant_agent",
+          "system_message": "You are a helpful assistant. Solve tasks carefully. When done, say TERMINATE.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "description": "Chat completion client for OpenAI hosted models.",
+            "label": "OpenAIChatCompletionClient",
+            "config": {
+              "model": "gpt-4o-mini"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context that keeps a view of all the messages.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": {
+            "provider": "autogen_core.tools.StaticWorkbench",
+            "component_type": "workbench",
+            "version": 1,
+            "component_version": 1,
+            "description": "A workbench that provides a static set of tools that do not change after each tool execution.",
+            "label": "StaticWorkbench",
+            "config": {
+              "tools": [
+                {
+                  "provider": "autogen_core.tools.FunctionTool",
+                  "component_type": "tool",
+                  "version": 1,
+                  "component_version": 1,
+                  "description": "Create custom tools by wrapping standard Python functions.",
+                  "label": "FunctionTool",
+                  "config": {
+                    "source_code": "def calculator(a: float, b: float, operator: str) -> str:\n    try:\n        if operator == \"+\":\n            return str(a + b)\n        elif operator == \"-\":\n            return str(a - b)\n        elif operator == \"*\":\n            return str(a * b)\n        elif operator == \"/\":\n            if b == 0:\n                return \"Error: Division by zero\"\n            return str(a / b)\n        else:\n            return \"Error: Invalid operator. Please use +, -, *, or /\"\n    except Exception as e:\n        return f\"Error: {str(e)}\"\n",
+                    "name": "calculator",
+                    "description": "A simple calculator that performs basic arithmetic operations",
+                    "global_imports": [],
+                    "has_cancellation_support": false
+                  }
+                },
+                {
+                  "provider": "autogen_core.tools.FunctionTool",
+                  "component_type": "tool",
+                  "version": 1,
+                  "component_version": 1,
+                  "description": "Submit reviewed logistics data to an external endpoint.",
+                  "label": "SubmitTool",
+                  "config": {
+                    "source_code": "def submit_shipment(data: dict) -> str:\n    print(f\"Submitting reviewed shipment: {data}\")\n    return \"Shipment submitted successfully.\"",
+                    "name": "submit_shipment",
+                    "description": "Submit reviewed logistics data to an external endpoint",
+                    "global_imports": [],
+                    "has_cancellation_support": false
+                  }
+                }
+              ]
+            }
+          },
+          "description": "An agent that provides assistance with ability to use tools.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 1,
+        "description": "Custom agent for logistics order categorization.",
+        "label": "Bolbot",
+        "config": {
+          "name": "Bolbot",
+          "system_message": "You are a logistics analyst named Bolbot. Classify shipping orders based on commodity and weight. If delivery_date is missing, flag for follow-up and explain why.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "description": "Chat completion client for OpenAI hosted models.",
+            "label": "OpenAIChatCompletionClient",
+            "config": {
+              "model": "gpt-4o-mini"
+            }
+          },
+          "description": "An agent that classifies logistics records and flags data gaps.",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 1,
+        "description": "Supervisor agent that reviews classification results and determines readiness for escalation or termination.",
+        "label": "SupervisorAgent",
+        "config": {
+          "name": "SupervisorAgent",
+          "system_message": "You are a logistics supervisor. After reviewing the classification made by Bolbot, confirm whether all required fields are present. If any are missing, recommend follow-up. If classification is complete, call the submit_shipment tool with the original data. Then authorize TERMINATE.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "description": "Chat completion client for OpenAI hosted models.",
+            "label": "OpenAIChatCompletionClient",
+            "config": {
+              "model": "gpt-4o-mini"
+            }
+          },
+          "description": "A supervisor agent that confirms classifications and advises whether to escalate or terminate.",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Terminate the conversation if a specific text is mentioned.",
+            "label": "TextMentionTermination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Terminate after a set number of messages.",
+            "label": "MaxMessageTermination",
+            "config": {
+              "max_messages": 10,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "emit_team_events": false
+  }
+}

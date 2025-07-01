@@ -1,0 +1,45 @@
+## 🤖 Agent Architecture & AutoGen Studio Integration (Planned)
+
+**AutoGen Studio** is a framework for building multi-agent applications using large language models (LLMs). Instead of a single monolithic assistant, AutoGen lets you create *specialized agents*—each with its own role, goals, and communication policy. These agents can message each other, reason independently, and collaborate to solve tasks end-to-end.
+
+### Why AutoGen?
+
+Our current system is implemented via structured scripts and JSON-based config/dispatch logic. However, migrating to AutoGen unlocks more scalable, maintainable multi-agent patterns, such as:
+
+- **Role-based agents** (e.g. WatcherAgent, ManifestBuilder, Dispatcher)
+- **Autonomous coordination** via message passing
+- **Dynamic task routing** (one agent delegates to another)
+- **Prompt modularity** and reusable agent skill sets
+
+### Studio Interface
+
+[AutoGen Studio](https://microsoft.github.io/autogen/studio/) is a visual builder for prototyping agent workflows. It allows developers to:
+
+- Define agent personalities, goals, and tool access
+- Create multi-step communication flows
+- Test agent interactions in a sandboxed loop
+- Deploy working prototypes as Python classes or JSON schemas
+
+### Agent Model Anatomy
+
+Each agent typically defines:
+- `name`: Unique identifier
+- `system_message`: Sets behavior and tone
+- `llm_config`: Which model to use + parameters
+- `functions/tools`: Optional access to APIs, file systems, external logic
+- `is_termination_msg`: Callback to determine when an agent should stop responding
+
+### Planned Integration
+
+We are exploring a transition from JSON-triggered tasks to AutoGen-powered loops with:
+
+- A persistent WatcherAgent that listens for file changes
+- A ManifestAgent that evaluates raw BOL files and builds CSVs
+- A ReporterAgent that archives, logs, or dispatches metadata
+- Optional ValidatorAgent for manifest quality control
+
+Each component will align with our core principles: *traceability, scalability,* and *reasoning transparency*.
+
+---
+
+> Our ultimate goal is to not just process files—but to create a resilient digital twin with proactive agency and cross-agent cognition. AutoGen Studio will help structure, test, and evolve that architecture interactively.
